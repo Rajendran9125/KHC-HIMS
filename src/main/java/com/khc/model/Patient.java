@@ -17,7 +17,7 @@ public class Patient extends BaseEntity {
     private Long id;
 
     @Column(name = "mrn", unique = true, nullable = false)
-    private String mrn; // Medical Record Number e.g. "MRN2026001"
+    private String mrn; // Patient ID / Medical Record Number e.g. "KH20260001"
 
     @Column(name = "first_name", nullable = false)
     private String firstName;
@@ -63,5 +63,9 @@ public class Patient extends BaseEntity {
 
     public String getFullName() {
         return (firstName != null ? firstName : "") + (lastName != null && !lastName.isEmpty() ? " " + lastName : "");
+    }
+
+    public String getPatientId() {
+        return this.mrn;
     }
 }
