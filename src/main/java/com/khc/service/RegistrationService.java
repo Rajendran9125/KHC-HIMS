@@ -32,21 +32,30 @@ public class RegistrationService {
     private DoctorRepo doctorRepo;
 
     private static final AtomicLong mrnCounter = new AtomicLong(1);
-    private static final AtomicLong opCounter = new AtomicLong(2001);
+    private static final AtomicLong opCounter = new AtomicLong(1);
 
     @PostConstruct
     public void initCounters() {
         try {
             String currentYear = String.valueOf(LocalDate.now().getYear());
-            String prefix = "MRN" + currentYear;
+            String prefixKH = "KHC" + currentYear;
+            String prefixMRN = "MRN" + currentYear;
             long maxSeq = 0;
             List<Patient> patients = patientRepo.findAll();
             for (Patient p : patients) {
                 if (p.getMrn() != null) {
                     String clean = p.getMrn().trim();
-                    if (clean.startsWith(prefix)) {
+                    if (clean.startsWith(prefixKH)) {
                         try {
-                            String numPart = clean.substring(prefix.length());
+                            String numPart = clean.substring(prefixKH.length());
+                            long val = Long.parseLong(numPart);
+                            if (val > maxSeq) {
+                                maxSeq = val;
+                            }
+                        } catch (Exception ignored) {}
+                    } else if (clean.startsWith(prefixMRN)) {
+                        try {
+                            String numPart = clean.substring(prefixMRN.length());
                             long val = Long.parseLong(numPart);
                             if (val > maxSeq) {
                                 maxSeq = val;
@@ -61,7 +70,7 @@ public class RegistrationService {
         }
 
         try {
-            long maxOp = 2000;
+            long maxOp = 0;
             List<OpRegistration> ops = registrationRepo.findAll();
             for (OpRegistration o : ops) {
                 if (o.getOpNumber() != null) {
@@ -69,14 +78,16 @@ public class RegistrationService {
                     if (clean.startsWith("OP") && !clean.contains("-")) {
                         try {
                             long val = Long.parseLong(clean.substring(2));
-                            if (val > maxOp) maxOp = val;
+                            if (val < 2000 && val > maxOp) {
+                                maxOp = val;
+                            }
                         } catch (Exception ignored) {}
                     }
                 }
             }
             opCounter.set(maxOp + 1);
         } catch (Exception e) {
-            opCounter.set(2001);
+            opCounter.set(1);
         }
     }
 
@@ -85,11 +96,11 @@ public class RegistrationService {
         Doctor doctor = doctorRepo.findById(req.getDoctorId())
                 .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + req.getDoctorId()));
 
-        // Create new Patient
+        // Create new Patient with Patient ID format: KH + Year + 4 digits (e.g. KH20260001)
         Patient patient = new Patient();
         String year = String.valueOf(LocalDate.now().getYear());
         long seq = mrnCounter.getAndIncrement();
-        patient.setMrn("MRN" + year + String.format("%03d", seq));
+        patient.setMrn("KHC" + year + String.format("%04d", seq));
         patient.setFirstName(req.getFirstName());
         patient.setLastName(req.getLastName());
         patient.setDob(req.getDob());
@@ -106,9 +117,9 @@ public class RegistrationService {
         patient.setEmergencyContact(req.getEmergencyContact());
         patient = patientRepo.save(patient);
 
-        // Create OP Registration
+        // Create OP Registration with OP Token Number format: OP + 4 digits (e.g. OP0001)
         OpRegistration op = new OpRegistration();
-        op.setOpNumber("OP" + opCounter.getAndIncrement());
+        op.setOpNumber(String.format("OP%04d", opCounter.getAndIncrement()));
         op.setPatient(patient);
         op.setDoctor(doctor);
         op.setVisitType("NEW");
@@ -136,7 +147,7 @@ public class RegistrationService {
                     .orElseThrow(() -> new RuntimeException("Patient not found with id: " + req.getPatientId()));
         } else if (req.getMrn() != null && !req.getMrn().trim().isEmpty()) {
             patient = patientRepo.findByMrn(req.getMrn().trim())
-                    .orElseThrow(() -> new RuntimeException("Patient not found with MRN: " + req.getMrn()));
+                    .orElseThrow(() -> new RuntimeException("Patient not found with MRN / Patient ID: " + req.getMrn()));
         } else {
             throw new IllegalArgumentException("Either patientId or MRN is required for review visit");
         }
@@ -145,7 +156,7 @@ public class RegistrationService {
                 .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + req.getDoctorId()));
 
         OpRegistration op = new OpRegistration();
-        op.setOpNumber("OP" + opCounter.getAndIncrement());
+        op.setOpNumber(String.format("OP%04d", opCounter.getAndIncrement()));
         op.setPatient(patient);
         op.setDoctor(doctor);
         op.setVisitType("REVIEW");
