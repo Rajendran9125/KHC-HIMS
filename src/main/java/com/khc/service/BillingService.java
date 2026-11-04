@@ -68,6 +68,9 @@ public class BillingService {
         if (req.getOpRegistrationId() != null) {
             opRegistration = registrationRepo.findById(req.getOpRegistrationId()).orElse(null);
             if (opRegistration != null) {
+                if ("BILLED".equalsIgnoreCase(opRegistration.getStatus()) || "PAID".equalsIgnoreCase(opRegistration.getStatus())) {
+                    throw new RuntimeException("OP Registration " + opRegistration.getOpNumber() + " is already BILLED and PAID. Duplicate billing is not allowed.");
+                }
                 opRegistration.setStatus("BILLED");
                 registrationRepo.save(opRegistration);
             }

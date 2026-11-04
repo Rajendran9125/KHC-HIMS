@@ -107,10 +107,10 @@ public class MasterService {
         if ("ADMIN".equalsIgnoreCase(user.getRole())) {
             // ADMIN has ALL rights
             allowedMenusList = Arrays.asList(
-                    "admin", "users", "services",
+                    "admin", "users", "services", "location-master", "change-password",
                     "op-new", "op-review", "patient-update",
-                    "modify-doctor-reg", "modify-patient-type", "modify-payment-type-reg",
-                    "op-billing", "modify-doctor-bill", "modify-payment-type-bill",
+                    "modify-doctor-reg", "modify-patient-type",
+                    "op-billing", "copy-bill", "modify-doctor-bill", "modify-payment-type-bill", "refund-billing",
                     "report-billing", "report-revenue", "report-registration"
             );
         } else {
