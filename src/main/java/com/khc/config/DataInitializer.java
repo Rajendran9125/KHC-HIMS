@@ -246,6 +246,15 @@ public class DataInitializer implements CommandLineRunner {
                 menu.setIsActive(true);
                 menuRepo.save(menu);
             }
+            if (!menuRepo.existsByMenuCode("change-password")) {
+                AppMenu menu = new AppMenu();
+                menu.setMenuCode("change-password");
+                menu.setMenuLabel("MASTER: CHANGE PASSWORD");
+                menu.setCategory("MASTER");
+                menu.setDisplayOrder(5);
+                menu.setIsActive(true);
+                menuRepo.save(menu);
+            }
         }
 
         // 6. Seed Location Master Data (Country -> State -> City)

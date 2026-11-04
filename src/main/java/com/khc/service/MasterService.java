@@ -178,6 +178,41 @@ public class MasterService {
         userRepo.save(user);
     }
 
+    public void changePassword(ChangePasswordReq req) {
+        if (req == null) {
+            throw new RuntimeException("Request body cannot be null");
+        }
+        if (req.getUsername() == null || req.getUsername().trim().isEmpty()) {
+            throw new RuntimeException("Username is required");
+        }
+        if (req.getOldPassword() == null || req.getOldPassword().trim().isEmpty()) {
+            throw new RuntimeException("Old password is required");
+        }
+        if (req.getNewPassword() == null || req.getNewPassword().trim().isEmpty()) {
+            throw new RuntimeException("New password cannot be empty");
+        }
+        if (req.getNewPassword().trim().length() < 4) {
+            throw new RuntimeException("New password must be at least 4 characters long");
+        }
+        if (req.getRePassword() == null || !req.getNewPassword().equals(req.getRePassword())) {
+            throw new RuntimeException("New password and Confirm/Re password do not match");
+        }
+
+        AppUser user = userRepo.findByUsername(req.getUsername().trim())
+                .orElseThrow(() -> new RuntimeException("User account '" + req.getUsername().trim() + "' not found"));
+
+        if (!req.getOldPassword().equals(user.getPassword())) {
+            throw new RuntimeException("Incorrect old password. Please verify and try again.");
+        }
+
+        if (req.getNewPassword().equals(req.getOldPassword())) {
+            throw new RuntimeException("New password cannot be the same as your old password");
+        }
+
+        user.setPassword(req.getNewPassword().trim());
+        userRepo.save(user);
+    }
+
     // --- Hospital Services (Tariff & Amount Master) ---
     public List<HospitalService> getAllServices(String query) {
         if (query != null && !query.trim().isEmpty()) {

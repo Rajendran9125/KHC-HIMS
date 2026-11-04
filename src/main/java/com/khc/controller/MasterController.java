@@ -176,4 +176,15 @@ public class MasterController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> getAdminStats() {
         return ResponseEntity.ok(ApiResponse.ok(masterService.getAdminDashboardStats()));
     }
+
+    // --- Change Password ---
+    @PostMapping("/change-password")
+    public ResponseEntity<ApiResponse<String>> changePassword(@RequestBody ChangePasswordReq req) {
+        try {
+            masterService.changePassword(req);
+            return ResponseEntity.ok(ApiResponse.ok("Password changed successfully", "SUCCESS"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        }
+    }
 }
