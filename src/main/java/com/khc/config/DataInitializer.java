@@ -47,18 +47,6 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        // 1. Clean up sample transactional data (bills, registrations, patients)
-        try {
-            billRepo.deleteAll();
-            registrationRepo.deleteAll();
-            patientRepo.deleteAll();
-        } catch (Exception e) {
-            System.out.println("Note: Transaction cleanup: " + e.getMessage());
-        }
-
-        // 2. Remove demo non-admin users if present
-        userRepo.findByUsername("user1").ifPresent(userRepo::delete);
-        userRepo.findByUsername("cashier1").ifPresent(userRepo::delete);
 
         // 3. Ensure ONLY ONE Admin User Exists (admin / admin123)
         if (userRepo.findByUsername("admin").isEmpty()) {
@@ -74,59 +62,6 @@ public class DataInitializer implements CommandLineRunner {
             admin.setIsActive(true);
             userRepo.save(admin);
             System.out.println(">>> Admin User (admin / admin123) initialized.");
-        }
-
-        // 4. Seed Essential Master Records (Doctors, Tariff Services, Patient Types, Payment Types)
-        if (doctorRepo.count() == 0) {
-            Doctor d1 = new Doctor();
-            d1.setDoctorName("Dr. Rajesh Sharma");
-            d1.setSpecialization("Cardiologist (MD, DM)");
-            d1.setDepartment("Cardiology");
-            d1.setConsultationFee(500.0);
-            d1.setPhone("+91 98765 43210");
-            d1.setRoomNo("OPD-101");
-            d1.setIsActive(true);
-            doctorRepo.save(d1);
-
-            Doctor d2 = new Doctor();
-            d2.setDoctorName("Dr. Priya Nair");
-            d2.setSpecialization("General Physician (MBBS, MD)");
-            d2.setDepartment("General Medicine");
-            d2.setConsultationFee(300.0);
-            d2.setPhone("+91 98765 43211");
-            d2.setRoomNo("OPD-102");
-            d2.setIsActive(true);
-            doctorRepo.save(d2);
-
-            Doctor d3 = new Doctor();
-            d3.setDoctorName("Dr. Vikram Patel");
-            d3.setSpecialization("Orthopedic Surgeon (MS)");
-            d3.setDepartment("Orthopedics");
-            d3.setConsultationFee(450.0);
-            d3.setPhone("+91 98765 43212");
-            d3.setRoomNo("OPD-103");
-            d3.setIsActive(true);
-            doctorRepo.save(d3);
-
-            Doctor d4 = new Doctor();
-            d4.setDoctorName("Dr. Ananya Sen");
-            d4.setSpecialization("Pediatrician (MD Pediatrics)");
-            d4.setDepartment("Pediatrics");
-            d4.setConsultationFee(350.0);
-            d4.setPhone("+91 98765 43213");
-            d4.setRoomNo("OPD-104");
-            d4.setIsActive(true);
-            doctorRepo.save(d4);
-
-            Doctor d5 = new Doctor();
-            d5.setDoctorName("Dr. Arun Kumar");
-            d5.setSpecialization("ENT Specialist (MS ENT)");
-            d5.setDepartment("ENT");
-            d5.setConsultationFee(400.0);
-            d5.setPhone("+91 98765 43214");
-            d5.setRoomNo("OPD-105");
-            d5.setIsActive(true);
-            doctorRepo.save(d5);
         }
 
         if (serviceRepo.count() == 0) {
