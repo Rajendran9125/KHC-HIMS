@@ -61,12 +61,26 @@ public class RegistrationController {
 
     // Query Registrations
     @GetMapping("/list")
-    public ResponseEntity<ApiResponse<List<OpRegistration>>> getRegistrations(@RequestParam(required = false) String query) {
-        List<OpRegistration> list = registrationService.searchRegistrations(query);
+    public ResponseEntity<ApiResponse<List<OpRegistration>>> getRegistrations(
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+        List<OpRegistration> list = registrationService.searchRegistrations(query, startDate, endDate);
         return ResponseEntity.ok(ApiResponse.ok(list));
     }
 
-    @GetMapping("/{id}")
+    // Dedicated endpoint for Copy Bill (defaults to today's records)
+    @GetMapping("/copy-bills")
+    public ResponseEntity<ApiResponse<List<OpRegistration>>> getCopyRegistrations(
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            @RequestParam(required = false) Boolean allRecords) {
+        List<OpRegistration> list = registrationService.getCopyRegistrations(query, startDate, endDate, allRecords);
+        return ResponseEntity.ok(ApiResponse.ok(list));
+    }
+
+    @GetMapping("/{id:[0-9]+}")
     public ResponseEntity<ApiResponse<OpRegistration>> getRegistrationById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.ok(registrationService.getRegistrationById(id)));
     }

@@ -18,6 +18,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.time.LocalTime;
+import java.util.stream.Collectors;
 
 @Service
 public class RegistrationService {
@@ -239,11 +241,62 @@ public class RegistrationService {
         return registrationRepo.findAllByOrderByRegistrationDateDesc();
     }
 
-    public List<OpRegistration> searchRegistrations(String query) {
-        if (query == null || query.trim().isEmpty()) {
-            return getAllRegistrations();
+    private LocalDateTime parseStartOfDay(String dateStr) {
+        if (dateStr == null || dateStr.trim().isEmpty()) return null;
+        try {
+            return LocalDate.parse(dateStr.trim()).atStartOfDay();
+        } catch (Exception e) {
+            return null;
         }
-        return registrationRepo.searchRegistrations(query.trim());
+    }
+
+    private LocalDateTime parseEndOfDay(String dateStr) {
+        if (dateStr == null || dateStr.trim().isEmpty()) return null;
+        try {
+            return LocalDate.parse(dateStr.trim()).atTime(LocalTime.MAX);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public List<OpRegistration> searchRegistrations(String query) {
+        return searchRegistrations(query, null, null);
+    }
+
+    public List<OpRegistration> searchRegistrations(String query, String startDate, String endDate) {
+        List<OpRegistration> regs = (query == null || query.trim().isEmpty())
+                ? registrationRepo.findAllByOrderByRegistrationDateDesc()
+                : registrationRepo.searchRegistrations(query.trim());
+
+        LocalDateTime start = parseStartOfDay(startDate);
+        if (start != null) {
+            regs = regs.stream()
+                    .filter(r -> r.getRegistrationDate() != null && !r.getRegistrationDate().isBefore(start))
+                    .collect(Collectors.toList());
+        }
+
+        LocalDateTime end = parseEndOfDay(endDate);
+        if (end != null) {
+            regs = regs.stream()
+                    .filter(r -> r.getRegistrationDate() != null && !r.getRegistrationDate().isAfter(end))
+                    .collect(Collectors.toList());
+        }
+
+        return regs;
+    }
+
+    public List<OpRegistration> getCopyRegistrations(String query, String startDate, String endDate, Boolean allRecords) {
+        boolean showAll = Boolean.TRUE.equals(allRecords);
+        String start = startDate;
+        String end = endDate;
+
+        if (!showAll && (start == null || start.trim().isEmpty()) && (end == null || end.trim().isEmpty())) {
+            String today = LocalDate.now().toString();
+            start = today;
+            end = today;
+        }
+
+        return searchRegistrations(query, start, end);
     }
 
     public List<Patient> searchPatients(String query) {

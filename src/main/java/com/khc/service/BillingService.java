@@ -13,6 +13,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.time.LocalTime;
+import java.util.stream.Collectors;
 
 @Service
 public class BillingService {
@@ -231,10 +233,62 @@ public class BillingService {
     }
 
     public List<OpBill> searchBills(String query) {
-        if (query == null || query.trim().isEmpty()) {
-            return getAllBills();
+        return searchBills(query, null, null);
+    }
+
+    private LocalDateTime parseStartOfDay(String dateStr) {
+        if (dateStr == null || dateStr.trim().isEmpty()) return null;
+        try {
+            return LocalDate.parse(dateStr.trim()).atStartOfDay();
+        } catch (Exception e) {
+            return null;
         }
-        return billRepo.searchBills(query.trim());
+    }
+
+    private LocalDateTime parseEndOfDay(String dateStr) {
+        if (dateStr == null || dateStr.trim().isEmpty()) return null;
+        try {
+            return LocalDate.parse(dateStr.trim()).atTime(LocalTime.MAX);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public List<OpBill> searchBills(String query, String startDate, String endDate) {
+        List<OpBill> bills = (query == null || query.trim().isEmpty())
+                ? billRepo.findAllByOrderByBillDateDesc()
+                : billRepo.searchBills(query.trim());
+
+        LocalDateTime start = parseStartOfDay(startDate);
+        if (start != null) {
+            bills = bills.stream()
+                    .filter(b -> b.getBillDate() != null && !b.getBillDate().isBefore(start))
+                    .collect(Collectors.toList());
+        }
+
+        LocalDateTime end = parseEndOfDay(endDate);
+        if (end != null) {
+            bills = bills.stream()
+                    .filter(b -> b.getBillDate() != null && !b.getBillDate().isAfter(end))
+                    .collect(Collectors.toList());
+        }
+
+        return bills;
+    }
+
+    public List<OpBill> getCopyBills(String query, String startDate, String endDate, Boolean allRecords) {
+        boolean showAll = Boolean.TRUE.equals(allRecords);
+        String start = startDate;
+        String end = endDate;
+
+        // Default to today if neither date is supplied and showAll is not requested
+        if (!showAll && (start == null || start.trim().isEmpty()) && (end == null || end.trim().isEmpty())) {
+            String today = LocalDate.now().toString();
+            start = today;
+            end = today;
+        }
+
+        return searchBills(query, start, end);
     }
 
     public OpBill getBillById(Long id) {
