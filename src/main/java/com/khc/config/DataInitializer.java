@@ -149,7 +149,9 @@ public class DataInitializer implements CommandLineRunner {
                     {"refund-billing", "BILLING: REFUND BILLING (SERVICE REVERSAL)", "BILLING", 13},
                     {"report-billing", "REPORT: OP BILLING", "REPORT", 14},
                     {"report-revenue", "REPORT: REVENUE (SUMMARY + SERVICE WISE)", "REPORT", 15},
-                    {"report-registration", "REPORT: OP REGISTRATION", "REPORT", 16}
+                    {"report-registration", "REPORT: OP REGISTRATION", "REPORT", 16},
+                    {"report-collection", "REPORT: COLLECTION REPORT", "REPORT", 17},
+                    {"report-outstanding", "REPORT: OUTSTANDING REPORT", "REPORT", 18}
             };
             for (Object[] m : menusData) {
                 AppMenu menu = new AppMenu();
@@ -187,6 +189,24 @@ public class DataInitializer implements CommandLineRunner {
                 menu.setMenuLabel("MASTER: CHANGE PASSWORD");
                 menu.setCategory("MASTER");
                 menu.setDisplayOrder(5);
+                menu.setIsActive(true);
+                menuRepo.save(menu);
+            }
+            if (!menuRepo.existsByMenuCode("report-collection")) {
+                AppMenu menu = new AppMenu();
+                menu.setMenuCode("report-collection");
+                menu.setMenuLabel("REPORT: COLLECTION REPORT");
+                menu.setCategory("REPORT");
+                menu.setDisplayOrder(17);
+                menu.setIsActive(true);
+                menuRepo.save(menu);
+            }
+            if (!menuRepo.existsByMenuCode("report-outstanding")) {
+                AppMenu menu = new AppMenu();
+                menu.setMenuCode("report-outstanding");
+                menu.setMenuLabel("REPORT: OUTSTANDING REPORT");
+                menu.setCategory("REPORT");
+                menu.setDisplayOrder(18);
                 menu.setIsActive(true);
                 menuRepo.save(menu);
             }
